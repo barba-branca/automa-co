@@ -1,98 +1,63 @@
-# RPA para Lançamentos Contábeis no Sistema Domínio
+# RPA Assistente para Lançamentos no Sistema Domínio
 
-Este projeto automatiza o processo de lançamento de dados de uma planilha Excel no sistema de contabilidade "Domínio Contabilidade Fiscal". A solução foi desenvolvida em Python e utiliza uma abordagem modular para otimizar a leitura de dados e a automação da interface gráfica (GUI).
+Bem-vindo ao RPA Assistente! Esta ferramenta foi criada para tornar seus lançamentos contábeis no sistema **Domínio** mais rápidos e fáceis.
 
-## Funcionalidades Principais
+Em vez de um programa que você roda toda vez, este é um **assistente que fica rodando em segundo plano**. Depois de iniciado, basta usar um atalho de teclado para que ele leia a sua planilha do Excel aberta e lance os dados no sistema.
 
-- **Leitura Otimizada de Excel**: Lê apenas o cabeçalho e as colunas necessárias da planilha, garantindo alta performance mesmo com arquivos grandes.
-- **Mapeamento Dinâmico de Colunas**: Identifica as colunas corretas na planilha com base em uma lista de possíveis nomes (aliases), tornando a automação flexível a diferentes layouts de planilhas.
-- **Automação de Interface Robusta**: Utiliza `pywinauto` para interagir com o sistema Domínio, preenchendo os campos de lançamento de forma automática.
-- **Logging Detalhado**: Gera logs de todas as etapas do processo, facilitando o monitoramento e a identificação de erros.
-- **Configuração Centralizada**: Todas as configurações, como o caminho da planilha e o mapeamento de colunas, são gerenciadas em um único arquivo `config.json`.
+## Como Funciona?
 
-## Estrutura do Projeto
+1.  **Você executa o assistente uma vez.** Ele fica esperando, sem atrapalhar.
+2.  **Você abre sua planilha no Excel** com os dados de lançamento.
+3.  **Você abre o sistema Domínio** na tela de "Consulta e Lançamentos".
+4.  **Você pressiona `Ctrl+Alt+A`**. A mágica acontece: o assistente lê os dados e preenche tudo para você.
 
-```
-.
-├── automacao_interface.py  # Script responsável pela automação da interface gráfica (pywinauto).
-├── config.json             # Arquivo de configuração (caminho da planilha, colunas).
-├── rpa.py                  # Orquestrador principal: lê a config, processa os dados e chama a automação.
-├── utils.py                # Funções auxiliares (ex: detecção de colunas).
-└── requirements.txt        # Lista de dependências Python.
-```
+## Guia Rápido: 4 Passos para Começar
 
-## Pré-requisitos
+Siga estes passos na ordem. Em poucos minutos, você estará pronto para automatizar.
 
-- Python 3.8 ou superior
-- Acesso ao sistema "Domínio Contabilidade Fiscal" em uma máquina Windows.
+### Passo 1: Instalação
 
-## Instalação
+Primeiro, precisamos instalar as "peças" que o robô precisa para funcionar.
 
-1.  **Clone o repositório:**
-    ```bash
-    git clone <url-do-seu-repositorio>
-    cd <nome-do-repositorio>
-    ```
+>   **Dê um duplo-clique no arquivo `install.bat`**
 
-2.  **Crie um ambiente virtual (recomendado):**
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # No Windows: venv\Scripts\activate
-    ```
+Uma tela preta irá aparecer e instalar tudo automaticamente. Espere até o final e pressione qualquer tecla para fechar.
 
-3.  **Instale as dependências:**
-    O projeto precisa das bibliotecas listadas no `requirements.txt`. Crie este arquivo com o seguinte conteúdo e depois execute o comando `pip install`.
+### Passo 2: Configuração (`config.json`)
 
-    **`requirements.txt`:**
-    ```
-    pandas
-    openpyxl
-    pywinauto
-    ```
+Este é o passo mais importante. O arquivo `config.json` é o "cérebro" do robô. É aqui que você diz a ele o que procurar. Abra-o com um editor de texto (como o Bloco de Notas).
 
-    **Comando para instalar:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-## Configuração (`config.json`)
-
-Antes de executar, ajuste o `config.json` com suas informações:
+**1. Mapeamento das Colunas:**
+Na seção `"colunas"`, diga ao robô quais nomes suas colunas podem ter. Por exemplo, para a conta de débito, você pode usar "conta a debitar", "debito", etc.
 
 ```json
-{
-  "caminho_planilha": "C:\\caminho\\para\\sua\\planilha.xlsx",
-  "colunas": {
-    "debito": ["conta devedora", "debito", "conta a debitar"],
-    "credito": ["conta credora", "credito", "conta a creditar"],
-    "valor": ["valor", "total", "valor do lancamento"],
-    "historico": ["historico", "descricao", "desc"]
-  }
+"colunas": {
+  "debito": ["conta devedora", "debito", "conta a debitar"],
+  "credito": ["conta credora", "credito", "conta a creditar"],
+  "valor": ["valor", "total", "valor do lancamento"],
+  "historico": ["historico", "descricao", "desc"]
 }
 ```
 
-- `caminho_planilha`: **(Obrigatório)** O caminho completo para o arquivo Excel. Use barras duplas `\\` no Windows.
-- `colunas`: **(Obrigatório)** Um dicionário onde:
-    - A **chave** (`"debito"`, `"credito"`, etc.) é o nome padrão que o script usará.
-    - O **valor** é uma lista de possíveis nomes que a coluna pode ter na sua planilha (aliases).
+**2. Configuração da Interface (Avançado):**
+A seção `"ui_config"` diz ao robô como encontrar os campos na tela do sistema Domínio. Os valores padrão devem funcionar para a maioria dos casos. Se a automação não conseguir encontrar um campo, você precisará usar uma ferramenta como o **"Inspect.exe"** da Microsoft para encontrar os valores corretos (`title` ou `auto_id`) e ajustá-los aqui.
 
-## Como Executar
+### Passo 3: Criar o Programa
 
-1.  Abra o sistema **Domínio Contabilidade Fiscal** e navegue até a tela **"Consulta e Lançamentos"**.
-2.  Abra um terminal (como o PowerShell ou CMD) no diretório do projeto.
-3.  Ative o ambiente virtual (se estiver usando um).
-4.  Execute o orquestrador principal:
-    ```bash
-    python rpa.py
-    ```
+Agora que tudo está configurado, vamos criar o arquivo `.exe` que você irá usar.
 
-O script irá processar a planilha e começar a preencher os dados na janela do sistema. Acompanhe os logs no terminal.
+>   **Dê um duplo-clique no arquivo `build.bat`**
 
-## **IMPORTANTE: Ajuste dos Seletores da Interface**
+Novamente, uma tela preta irá aparecer. Este processo pode demorar alguns minutos. No final, ele criará uma nova pasta chamada `dist`, e dentro dela estará o seu programa: `RPA_Assistente_Dominio.exe`.
 
-A automação da interface depende de "seletores" (como `title` e `auto_id`) para encontrar os campos e botões. **É muito provável que você precise ajustar esses seletores.**
+### Passo 4: Usar o Assistente!
 
-1.  **Baixe a ferramenta `Inspect.exe`**: Ela faz parte do Windows SDK, mas pode ser encontrada separadamente. É a melhor forma de inspecionar os elementos da interface.
-2.  **Execute `Inspect.exe`** e passe o mouse sobre os campos (Debitar, Creditar, Valor, etc.) e botões (Incluir) na janela do Domínio.
-3.  Anote as propriedades `Name` e `AutomationId` de cada elemento.
-4.  Abra o arquivo `automacao_interface.py` e atualize os valores nos comandos `main_dlg.child_window(...)` para que correspondam ao que você encontrou.
+1.  **Copie o `RPA_Assistente_Dominio.exe`** da pasta `dist` e cole-o na pasta principal (a mesma onde está o `config.json`).
+2.  **Dê um duplo-clique no `RPA_Assistente_Dominio.exe` para iniciá-lo.** Nada visível vai acontecer, mas ele já estará rodando em segundo plano.
+3.  **Abra sua planilha** no Excel.
+4.  **Abra o sistema Domínio** na tela de lançamentos.
+5.  **Pressione `Ctrl+Alt+A`**.
+
+A automação começará. Para monitorar o que o robô está fazendo, você pode abrir o arquivo `automacao_background.log`.
+
+Para **encerrar o assistente**, abra o Gerenciador de Tarefas do Windows (`Ctrl+Shift+Esc`) e finalize o processo `RPA_Assistente_Dominio.exe`.

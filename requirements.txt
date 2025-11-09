@@ -1,3 +1,6 @@
 pandas
 openpyxl
 pywinauto
+keyboard
+xlwings
+pywin32; sys_platform == 'win32'

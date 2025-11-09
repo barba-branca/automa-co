@@ -1,83 +1,89 @@
-import pandas as pd
-import json
 import logging
-from utils import detectar_coluna
-from automacao_interface import preencher_formulario # <-- 1. IMPORTAÇÃO ADICIONADA
+import keyboard
+import time
+from utils import carregar_configuracao, processar_planilha_ativa
+from automacao_interface import preencher_formulario
 
-# Configuração de logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# --- Configuração de Logging ---
+log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)
 
-def processar_planilha(config_path):
+# Log para arquivo
+file_handler = logging.FileHandler("automacao_background.log", "w", "utf-8")
+file_handler.setFormatter(log_formatter)
+root_logger.addHandler(file_handler)
+
+# Log para console
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(log_formatter)
+root_logger.addHandler(console_handler)
+
+# --- Variável de Controle Global ---
+# Evita que a automação seja acionada múltiplas vezes se o usuário pressionar o atalho repetidamente.
+automacao_em_execucao = False
+
+def trigger_automacao(config):
     """
-    Lê uma planilha, mapeia colunas dinamicamente e retorna os dados.
+    Esta função é chamada quando o atalho de teclado é pressionado.
+    Ela orquestra todo o fluxo da automação.
     """
-    try:
-        logging.info(f"Carregando arquivo de configuração: {config_path}")
-        with open(config_path, "r", encoding="utf-8") as f:
-            config = json.load(f)
-    except FileNotFoundError:
-        logging.error(f"Arquivo de configuração não encontrado em: {config_path}")
-        return None
-    except json.JSONDecodeError:
-        logging.error(f"Erro ao decodificar o JSON em: {config_path}")
-        return None
+    global automacao_em_execucao
+    if automacao_em_execucao:
+        logging.warning("Automação já está em execução. Aguarde a conclusão.")
+        return
 
-    caminho_planilha = config.get("caminho_planilha")
-    colunas_cfg = config.get("colunas")
-
-    if not caminho_planilha or not colunas_cfg:
-        logging.error("Configuração incompleta. 'caminho_planilha' e 'colunas' são obrigatórios.")
-        return None
+    automacao_em_execucao = True
+    logging.info("==================================================")
+    logging.info("Atalho pressionado! Iniciando a automação...")
 
     try:
-        logging.info(f"Lendo cabeçalho da planilha: {caminho_planilha}")
-        # Otimização: ler apenas o cabeçalho primeiro
-        df_header = pd.read_excel(caminho_planilha, nrows=0)
-        df_cols = df_header.columns.tolist()
+        # 1. Obter dados da planilha Excel atualmente aberta
+        dados_processados = processar_planilha_ativa(config)
 
-        mapa_colunas = {}
-        for chave, aliases in colunas_cfg.items():
-            coluna_detectada = detectar_coluna(df_cols, aliases)
-            if coluna_detectada:
-                mapa_colunas[chave] = coluna_detectada
-                logging.info(f"Coluna '{chave}' mapeada para '{coluna_detectada}'")
+        # 2. Se os dados foram obtidos, iniciar a automação da interface
+        if dados_processados:
+            ui_config = config.get("ui_config")
+            if ui_config:
+                logging.info("Dados extraídos com sucesso. Iniciando preenchimento no sistema Domínio...")
+                preencher_formulario(dados_processados, ui_config)
             else:
-                logging.warning(f"Nenhuma coluna encontrada para '{chave}'")
+                logging.error("A seção 'ui_config' não foi encontrada no config.json.")
+        else:
+            logging.error("Não foi possível extrair dados da planilha. A automação foi interrompida.")
 
-        colunas_necessarias = [col for col in mapa_colunas.values() if col is not None]
-        if not colunas_necessarias:
-            logging.error("Nenhuma coluna foi mapeada. Verifique os aliases no config.json.")
-            return None
-
-        logging.info("Lendo dados das colunas mapeadas...")
-        # Otimização: ler apenas as colunas necessárias
-        df = pd.read_excel(caminho_planilha, usecols=colunas_necessarias)
-
-        # Renomear colunas para o padrão definido no config.json
-        mapa_rename = {v: k for k, v in mapa_colunas.items()}
-        df.rename(columns=mapa_rename, inplace=True)
-
-        # Remover colunas que não foram mapeadas
-        colunas_a_manter = list(mapa_rename.values())
-        df = df[colunas_a_manter]
-
-        logging.info(f"Leitura e processamento da planilha concluídos. {len(df)} linhas lidas.")
-        return df.to_dict('records')
-
-    except FileNotFoundError:
-        logging.error(f"Arquivo da planilha não encontrado em: {caminho_planilha}")
-        return None
     except Exception as e:
-        logging.error(f"Ocorreu um erro inesperado: {e}")
-        return None
+        logging.critical(f"Ocorreu um erro crítico e inesperado durante a automação: {e}")
+
+    finally:
+        logging.info("Automação concluída. Aguardando próximo atalho...")
+        logging.info("==================================================")
+        automacao_em_execucao = False
+
+def main():
+    """
+    Função principal. Carrega a configuração e fica escutando o atalho de teclado.
+    """
+    logging.info("Serviço de Automação RPA iniciado em segundo plano.")
+    logging.info("Pressione 'Ctrl+Alt+A' com a planilha do Excel em foco para iniciar os lançamentos.")
+    logging.info("Para encerrar o serviço, feche esta janela.")
+
+    config = carregar_configuracao("config.json")
+
+    if not config:
+        logging.error("Falha ao carregar a configuração. O serviço não pode continuar.")
+        time.sleep(10)
+        return
+
+    # Cria uma função parcial que já inclui o objeto 'config'
+    # Isso é necessário para passar argumentos para a função de callback do keyboard
+    callback_com_config = lambda: trigger_automacao(config)
+
+    # Registra o atalho global
+    keyboard.add_hotkey('ctrl+alt+a', callback_com_config)
+
+    # Mantém o script rodando para escutar o atalho
+    keyboard.wait()
 
 if __name__ == '__main__':
-    # Passo 1: Processar os dados da planilha
-    dados_processados = processar_planilha("config.json")
-
-    # Passo 2: Se os dados foram processados, iniciar a automação da interface
-    if dados_processados:
-        logging.info("Dados processados com sucesso. Iniciando automação do preenchimento...")
-        preencher_formulario(dados_processados) # <-- 2. CHAMADA PARA A AUTOMAÇÃO
-    else:
-        logging.error("A automação não será iniciada devido a erros no processamento dos dados.")
+    main()

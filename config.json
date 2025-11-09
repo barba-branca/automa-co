@@ -1,5 +1,4 @@
 {
-  "caminho_planilha": "data.xlsx",
   "colunas": {
     "debito": [
       "conta debito",
@@ -24,5 +23,36 @@
       "descricao",
       "desc"
     ]
+  },
+  "ui_config": {
+    "titulo_app_principal": "Domínio Contabilidade Fiscal",
+    "titulo_janela_lancamentos": "Consulta e Lançamentos",
+    "seletores": {
+      "campo_debito": {
+        "title": "Debitar",
+        "control_type": "Edit",
+        "auto_id": null
+      },
+      "campo_credito": {
+        "title": "Creditar",
+        "control_type": "Edit",
+        "auto_id": null
+      },
+      "campo_valor": {
+        "title": null,
+        "control_type": "Edit",
+        "auto_id": "txtValorLancamento"
+      },
+      "campo_historico": {
+        "title": null,
+        "control_type": "Edit",
+        "auto_id": "txtHistoricoPadrao"
+      },
+      "botao_incluir": {
+        "title": "Incluir",
+        "control_type": "Button",
+        "auto_id": null
+      }
+    }
   }
 }
