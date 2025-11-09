@@ -1,0 +1,8 @@
+{
+    "caminho_planilha": "data.xlsx",
+    "colunas": {
+        "nome_completo": ["nome", "nome completo", "participante"],
+        "documento": ["cpf", "rg", "documento"],
+        "data_nascimento": ["data de nascimento", "nascimento", "data nasc"]
+    }
+}
