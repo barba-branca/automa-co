@@ -1,8 +1,28 @@
 {
-    "caminho_planilha": "data.xlsx",
-    "colunas": {
-        "nome_completo": ["nome", "nome completo", "participante"],
-        "documento": ["cpf", "rg", "documento"],
-        "data_nascimento": ["data de nascimento", "nascimento", "data nasc"]
-    }
+  "caminho_planilha": "data.xlsx",
+  "colunas": {
+    "debito": [
+      "conta debito",
+      "debito",
+      "conta a debitar",
+      "conta_debito"
+    ],
+    "credito": [
+      "conta credito",
+      "credito",
+      "conta a creditar",
+      "conta_credito"
+    ],
+    "valor": [
+      "valor",
+      "total",
+      "valor do lancamento",
+      "valor_lancamento"
+    ],
+    "historico": [
+      "historico",
+      "descricao",
+      "desc"
+    ]
+  }
 }

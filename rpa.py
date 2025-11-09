@@ -2,6 +2,7 @@ import pandas as pd
 import json
 import logging
 from utils import detectar_coluna
+from automacao_interface import preencher_formulario # <-- 1. IMPORTAÇÃO ADICIONADA
 
 # Configuração de logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -71,9 +72,12 @@ def processar_planilha(config_path):
         return None
 
 if __name__ == '__main__':
-    dados = processar_planilha("config.json")
-    if dados:
-        print("Dados processados:")
-        # Imprime os 3 primeiros registros como exemplo
-        for registro in dados[:3]:
-            print(registro)
+    # Passo 1: Processar os dados da planilha
+    dados_processados = processar_planilha("config.json")
+
+    # Passo 2: Se os dados foram processados, iniciar a automação da interface
+    if dados_processados:
+        logging.info("Dados processados com sucesso. Iniciando automação do preenchimento...")
+        preencher_formulario(dados_processados) # <-- 2. CHAMADA PARA A AUTOMAÇÃO
+    else:
+        logging.error("A automação não será iniciada devido a erros no processamento dos dados.")
